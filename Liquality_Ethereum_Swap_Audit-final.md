@@ -188,6 +188,8 @@ It is highly recommended that all parameters are strictly validated for content 
 
 A benefit of fixing the expiration size is that there's no longer a need for a dynamic `expirationPushOpcode` or dynamic computation of `dataSizeEncoded`, `redeemDestinationEncoded`, or `refundDestinationEncoded`. All of these can be hardcoded, reducing the possible attack surface further.
 
+It should be noted that using a factory to deploy the contracts, as suggested in the issue "Users need to trust the Liquality tools," would mean the parameter validation could happen directly in the factory (e.g. via Solidity's type safety).
+
 ### 3.3 Using zeros as a secret leads to a nonrefundable contract 
 
 | Severity  | Status | Link | Remediation Comment |
