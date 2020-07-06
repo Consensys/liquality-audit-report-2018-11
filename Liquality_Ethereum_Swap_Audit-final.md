@@ -63,8 +63,8 @@ ________________
 
 | | <img height="30px"  src="static-content/minor.png"/> | <img height="30px" src="static-content/medium.png"/>  | <img height="30px" src="static-content/major.png"/> | <img height="30px" src="static-content/critical.png"/> | 
 |:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|
-| <img height="30px"  src="static-content/open.png"/> | **0**  |  **2**  | **1**  | **2** |
-| <img height="30px"  src="static-content/closed.png"/> | **0**  |  **0**  | **0**  | **0** |
+| <img height="30px"  src="static-content/open.png"/> | **0**  |  **0**  | **1**  | **0** |
+| <img height="30px"  src="static-content/closed.png"/> | **0**  |  **2**  | **0**  | **2** |
 
 
 ________________
@@ -108,11 +108,11 @@ The following table contains all the issues discovered during the audit. The iss
 
 | Chapter | Issue Title  | Issue Status | Severity |
 | ------------- | ------------- | ------------- | ------------- |
- | 3.1 | [Ethereum swap provider forces secrets to be 32 bytes](#31-ethereum-swap-provider-forces-secrets-to-be-32-bytes) | <img height="30px" src="static-content/open.png"/>| <img height="30px" src="static-content/critical.png"/> | 
- | 3.2 | [Lack of parameter validation](#32-lack-of-parameter-validation) | <img height="30px" src="static-content/open.png"/>| <img height="30px" src="static-content/critical.png"/> | 
+ | 3.1 | [Ethereum swap provider forces secrets to be 32 bytes](#31-ethereum-swap-provider-forces-secrets-to-be-32-bytes) | <img height="30px" src="static-content/closed.png"/>| <img height="30px" src="static-content/critical.png"/> | 
+ | 3.2 | [Lack of parameter validation](#32-lack-of-parameter-validation) | <img height="30px" src="static-content/closed.png"/>| <img height="30px" src="static-content/critical.png"/> | 
  | 3.3 | [Using zeros as a secret leads to a nonrefundable contract](#33-using-zeros-as-a-secret-leads-to-a-nonrefundable-contract) | <img height="30px" src="static-content/open.png"/>| <img height="30px" src="static-content/major.png"/> | 
- | 3.4 | [Users need to trust the Liquality tools](#34-users-need-to-trust-the-liquality-tools) | <img height="30px" src="static-content/open.png"/>| <img height="30px" src="static-content/medium.png"/> | 
- | 3.5 | [Lack of testing](#35-lack-of-testing) | <img height="30px" src="static-content/open.png"/>| <img height="30px" src="static-content/medium.png"/> | 
+ | 3.4 | [Users need to trust the Liquality tools](#34-users-need-to-trust-the-liquality-tools) | <img height="30px" src="static-content/closed.png"/>| <img height="30px" src="static-content/medium.png"/> | 
+ | 3.5 | [Lack of testing](#35-lack-of-testing) | <img height="30px" src="static-content/closed.png"/>| <img height="30px" src="static-content/medium.png"/> | 
 
 
 
@@ -123,7 +123,7 @@ The following table contains all the issues discovered during the audit. The iss
 
 | Severity  | Status | Link | Remediation Comment |
 | ------------- | ------------- | ------------- | ------------- |
-| <img height="30px" src="static-content/critical.png"/> |  <img height="30px" src="static-content/open.png"/> | [ issues/25](https://github.com/ConsenSys/liquality-audit-2018-11/issues/25)| The issue is currently under review |
+| <img height="30px" src="static-content/critical.png"/> |  <img height="30px" src="static-content/closed.png"/> | [ issues/25](https://github.com/ConsenSys/liquality-audit-2018-11/issues/25)| The issue has been  |
 
 
 ### Description
@@ -159,11 +159,19 @@ The Ethereum swap provider truncates the user's input to 32 bytes, while the Bit
 
 Be consistent across all providers in requiring a fixed size secret (and how shorter/longer secrets are interpreted) or in allowing arbitrary length secrets. (On the Ethereum side, this would mean looking at the call data size and providing the right call data and gas to the SHA256 precompile.)
 
+### Resolution (comment from the Liquality team)
+
+This has been addressed through including secret size limits in the contracts.
+
+Here we have added the same limitation check on the bitcoin side:
+
+https://github.com/liquality/chainabstractionlayer/blob/b32e18dd62cf76a65b51699c96020a9af8c2ae0c/packages/bitcoin-swap-provider/lib/BitcoinSwapProvider.js#L46
+
 ### 3.2 Lack of parameter validation 
 
 | Severity  | Status | Link | Remediation Comment |
 | ------------- | ------------- | ------------- | ------------- |
-| <img height="30px" src="static-content/critical.png"/> |  <img height="30px" src="static-content/open.png"/> | [ issues/23](https://github.com/ConsenSys/liquality-audit-2018-11/issues/23)| The issue is currently under review |
+| <img height="30px" src="static-content/critical.png"/> |  <img height="30px" src="static-content/closed.png"/> | [ issues/23](https://github.com/ConsenSys/liquality-audit-2018-11/issues/23)| The issue is currently under review |
 
 
 ### Description
@@ -190,6 +198,13 @@ A benefit of fixing the expiration size is that there's no longer a need for a d
 
 It should be noted that using a factory to deploy the contracts, as suggested in the issue "Users need to trust the Liquality tools," would mean the parameter validation could happen directly in the factory (e.g. via Solidity's type safety).
 
+### Resolution (comment from the Liquality team)
+
+Type checks are being done here, the method used for the swap serves as self verification. The checks done in the code base are for client validation, and the chain serves as server validation.
+Any parameter which is not passed in terms of the agreed parameters between the two parties will render the swap invalid by default.
+
+https://github.com/liquality/chainabstractionlayer/blob/b32e18dd62cf76a65b51699c96020a9af8c2ae0c/packages/client/lib/Swap.js#L104
+
 ### 3.3 Using zeros as a secret leads to a nonrefundable contract 
 
 | Severity  | Status | Link | Remediation Comment |
@@ -211,8 +226,6 @@ Expiration is only checked _after_ the secret is checked against the hash. To ge
     return this.getMethod('sendTransaction')(initiationTransaction.contractAddress, 0, '')
   }
 ```
-
-
 
 ### Example
 
@@ -237,7 +250,7 @@ The latter option seems better, in that it doesn't require that users do anythin
 
 | Severity  | Status | Link | Remediation Comment |
 | ------------- | ------------- | ------------- | ------------- |
-| <img height="30px" src="static-content/medium.png"/> |  <img height="30px" src="static-content/open.png"/> | [ issues/27](https://github.com/ConsenSys/liquality-audit-2018-11/issues/27)| The issue is currently under review |
+| <img height="30px" src="static-content/medium.png"/> |  <img height="30px" src="static-content/closed.png"/> | [ issues/27](https://github.com/ConsenSys/liquality-audit-2018-11/issues/27)| The issue is currently under review |
 
 
 ### Description
@@ -250,11 +263,17 @@ In the current model, users are given bytecode to deploy and have little recours
 2. Writing the contract in Solidity with constructor parameters would make it easy for anyone to verify the code before they use the contract and to deploy it easily using their own tools (e.g. Remix). This is a tradeoff: less trust required but higher gas costs than the current hand-optimized bytecode.
 3. Using a factory pattern (a contract that deploys each swap contract) would require almost no verification by users. Once the factory is believed to be correct, it's impossible for any contract deployed by it to _not_ be correct. At this point, users only need to verify that they're interacting with the correct factory contract. (They can do this by checking the address.)
 
+### Resolution (comment from the Liquality team)
+
+On a standards level, we promote an amended version of BIP199 and have published ERC1630 for public review. The code base implements these standards and is provisioned under the MIT license which can be independently verified.
+
+The intended means for executing the code is from the client, and we only provide hosted instances for testnet scenarios, for demonstration purposes.
+
 ### 3.5 Lack of testing 
 
 | Severity  | Status | Link | Remediation Comment |
 | ------------- | ------------- | ------------- | ------------- |
-| <img height="30px" src="static-content/medium.png"/> |  <img height="30px" src="static-content/open.png"/> | [ issues/26](https://github.com/ConsenSys/liquality-audit-2018-11/issues/26)| The issue is currently under review |
+| <img height="30px" src="static-content/medium.png"/> |  <img height="30px" src="static-content/closed.png"/> | [ issues/26](https://github.com/ConsenSys/liquality-audit-2018-11/issues/26)| The issue is currently under review |
 
 
 ### Description
@@ -267,7 +286,11 @@ For contracts that handle potentially large sums of ether, it's important to _at
 
 Write automated tests that exercise the full range of parameter values and contract functionality.
 
+### Resolution (comment from the Liquality team)
 
+We have introduced a set of unit, integration and code coverage within our build process.
+
+https://github.com/liquality/chainabstractionlayer/tree/dev/test
 
 ## Appendix 1 - Severity
 
